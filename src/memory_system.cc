@@ -46,6 +46,10 @@ bool MemorySystem::AddTransaction(uint64_t hex_addr, bool is_write) {
     return dram_system_->AddTransaction(hex_addr, is_write);
 }
 
+int MemorySystem::getChannel(uint64_t hex_addr){
+	return dram_system_->GetChannel(hex_addr);
+}
+
 void MemorySystem::PrintStats() const { dram_system_->PrintStats(); }
 
 void MemorySystem::ResetStats() { dram_system_->ResetStats(); }

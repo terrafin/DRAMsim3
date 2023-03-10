@@ -25,6 +25,8 @@ class MemorySystem {
 
     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const;
     bool AddTransaction(uint64_t hex_addr, bool is_write);
+
+	int getChannel(uint64_t hex_addr);
 };
 
 MemorySystem* GetMemorySystem(const std::string &config_file, const std::string &output_dir,
