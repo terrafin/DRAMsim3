@@ -27,6 +27,10 @@ class MemorySystem {
     bool AddTransaction(uint64_t hex_addr, bool is_write);
 
 	int getChannel(uint64_t hex_addr);
+
+   private:
+	void *config_;
+	void* dram_system;
 };
 
 MemorySystem* GetMemorySystem(const std::string &config_file, const std::string &output_dir,
