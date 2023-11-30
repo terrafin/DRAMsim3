@@ -10,12 +10,13 @@ namespace dramsim3 {
 class MemorySystem {
    public:
     MemorySystem(const std::string &config_file, const std::string &output_dir,
-                 std::function<void(uint64_t)> read_callback,
-                 std::function<void(uint64_t)> write_callback);
+                 std::function<void(uint64_t, int)> read_callback,
+                 std::function<void(uint64_t, int)> write_callback,
+				 int module_idx);
     ~MemorySystem();
     void ClockTick();
-    void RegisterCallbacks(std::function<void(uint64_t)> read_callback,
-                           std::function<void(uint64_t)> write_callback);
+    void RegisterCallbacks(std::function<void(uint64_t, int)> read_callback,
+                           std::function<void(uint64_t, int)> write_callback);
     double GetTCK() const;
     int GetBusBits() const;
     int GetBurstLength() const;
@@ -31,11 +32,13 @@ class MemorySystem {
    private:
 	void *config_;
 	void* dram_system;
+	int module_index;
 };
 
 MemorySystem* GetMemorySystem(const std::string &config_file, const std::string &output_dir,
-                 std::function<void(uint64_t)> read_callback,
-                 std::function<void(uint64_t)> write_callback);
+                 std::function<void(uint64_t, int)> read_callback,
+                 std::function<void(uint64_t, int)> write_callback,
+				 int module_idx);
 }  // namespace dramsim3
 
 #endif

@@ -19,11 +19,12 @@ namespace dramsim3 {
 class BaseDRAMSystem {
    public:
     BaseDRAMSystem(Config &config, const std::string &output_dir,
-                   std::function<void(uint64_t)> read_callback,
-                   std::function<void(uint64_t)> write_callback);
+                   std::function<void(uint64_t, int)> read_callback,
+                   std::function<void(uint64_t, int)> write_callback,
+				   int module_idx);
     virtual ~BaseDRAMSystem() {}
-    void RegisterCallbacks(std::function<void(uint64_t)> read_callback,
-                           std::function<void(uint64_t)> write_callback);
+    void RegisterCallbacks(std::function<void(uint64_t, int)> read_callback,
+                           std::function<void(uint64_t, int)> write_callback);
     void PrintEpochStats();
     void PrintStats();
     void ResetStats();
@@ -34,8 +35,10 @@ class BaseDRAMSystem {
     virtual void ClockTick() = 0;
     int GetChannel(uint64_t hex_addr) const;
 
-    std::function<void(uint64_t req_id)> read_callback_, write_callback_;
+    std::function<void(uint64_t req_id, int module_id)> read_callback_, write_callback_;
     static int total_channels_;
+
+	int module_index;
 
    protected:
     uint64_t id_;
@@ -61,8 +64,9 @@ class BaseDRAMSystem {
 class JedecDRAMSystem : public BaseDRAMSystem {
    public:
     JedecDRAMSystem(Config &config, const std::string &output_dir,
-                    std::function<void(uint64_t)> read_callback,
-                    std::function<void(uint64_t)> write_callback);
+                    std::function<void(uint64_t, int)> read_callback,
+                    std::function<void(uint64_t, int)> write_callback,
+					int module_idx);
     ~JedecDRAMSystem();
     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const override;
     bool AddTransaction(uint64_t hex_addr, bool is_write) override;
@@ -75,8 +79,9 @@ class JedecDRAMSystem : public BaseDRAMSystem {
 class IdealDRAMSystem : public BaseDRAMSystem {
    public:
     IdealDRAMSystem(Config &config, const std::string &output_dir,
-                    std::function<void(uint64_t)> read_callback,
-                    std::function<void(uint64_t)> write_callback);
+                    std::function<void(uint64_t, int)> read_callback,
+                    std::function<void(uint64_t, int)> write_callback,
+					int module_idx);
     ~IdealDRAMSystem();
     bool WillAcceptTransaction(uint64_t hex_addr,
                                bool is_write) const override {

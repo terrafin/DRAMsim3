@@ -241,9 +241,10 @@ HMCResponse::HMCResponse(uint64_t id, HMCReqType req_type, int dest_link,
 }
 
 HMCMemorySystem::HMCMemorySystem(Config &config, const std::string &output_dir,
-                                 std::function<void(uint64_t)> read_callback,
-                                 std::function<void(uint64_t)> write_callback)
-    : BaseDRAMSystem(config, output_dir, read_callback, write_callback),
+                                 std::function<void(uint64_t, int)> read_callback,
+                                 std::function<void(uint64_t, int)> write_callback,
+								 int module_idx)
+    : BaseDRAMSystem(config, output_dir, read_callback, write_callback, module_idx),
       logic_clk_(0),
       logic_ps_(0),
       dram_ps_(0),
@@ -498,9 +499,9 @@ void HMCMemorySystem::DrainResponses() {
             HMCResponse *resp = link_resp_queues_[i].front();
             if (resp->exit_time <= logic_clk_) {
                 if (resp->type == HMCRespType::RD_RS) {
-                    read_callback_(resp->resp_id);
+                    read_callback_(resp->resp_id, module_index);
                 } else {
-                    write_callback_(resp->resp_id);
+                    write_callback_(resp->resp_id, module_index);
                 }
                 delete (resp);
                 link_resp_queues_[i].erase(link_resp_queues_[i].begin());

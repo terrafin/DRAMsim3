@@ -9,13 +9,15 @@ namespace dramsim3 {
 int BaseDRAMSystem::total_channels_ = 0;
 
 BaseDRAMSystem::BaseDRAMSystem(Config &config, const std::string &output_dir,
-                               std::function<void(uint64_t)> read_callback,
-                               std::function<void(uint64_t)> write_callback)
+                               std::function<void(uint64_t, int)> read_callback,
+                               std::function<void(uint64_t, int)> write_callback,
+							   int module_idx)
     : read_callback_(read_callback),
       write_callback_(write_callback),
       last_req_clk_(0),
       config_(config),
       timing_(config_),
+	  module_index(module_idx),
 #ifdef THERMAL
       thermal_calc_(config_),
 #endif  // THERMAL
@@ -86,17 +88,18 @@ void BaseDRAMSystem::ResetStats() {
 }
 
 void BaseDRAMSystem::RegisterCallbacks(
-    std::function<void(uint64_t)> read_callback,
-    std::function<void(uint64_t)> write_callback) {
+    std::function<void(uint64_t, int)> read_callback,
+    std::function<void(uint64_t, int)> write_callback) {
     // TODO this should be propagated to controllers
     read_callback_ = read_callback;
     write_callback_ = write_callback;
 }
 
 JedecDRAMSystem::JedecDRAMSystem(Config &config, const std::string &output_dir,
-                                 std::function<void(uint64_t)> read_callback,
-                                 std::function<void(uint64_t)> write_callback)
-    : BaseDRAMSystem(config, output_dir, read_callback, write_callback) {
+                                 std::function<void(uint64_t, int)> read_callback,
+                                 std::function<void(uint64_t, int)> write_callback,
+								 int module_idx)
+    : BaseDRAMSystem(config, output_dir, read_callback, write_callback, module_idx) {
     if (config_.IsHMC()) {
         std::cerr << "Initialized a memory system with an HMC config file!"
                   << std::endl;
@@ -150,9 +153,9 @@ void JedecDRAMSystem::ClockTick() {
         while (true) {
             auto pair = ctrls_[i]->ReturnDoneTrans(clk_);
             if (pair.second == 1) {
-                write_callback_(pair.first);
+                write_callback_(pair.first, module_index);
             } else if (pair.second == 0) {
-                read_callback_(pair.first);
+                read_callback_(pair.first, module_index);
             } else {
                 break;
             }
@@ -170,9 +173,10 @@ void JedecDRAMSystem::ClockTick() {
 }
 
 IdealDRAMSystem::IdealDRAMSystem(Config &config, const std::string &output_dir,
-                                 std::function<void(uint64_t)> read_callback,
-                                 std::function<void(uint64_t)> write_callback)
-    : BaseDRAMSystem(config, output_dir, read_callback, write_callback),
+                                 std::function<void(uint64_t, int)> read_callback,
+                                 std::function<void(uint64_t, int)> write_callback,
+								 int module_idx)
+    : BaseDRAMSystem(config, output_dir, read_callback, write_callback, module_idx),
       latency_(config_.ideal_memory_latency) {}
 
 IdealDRAMSystem::~IdealDRAMSystem() {}
@@ -189,9 +193,9 @@ void IdealDRAMSystem::ClockTick() {
          trans_it != infinite_buffer_q_.end();) {
         if (clk_ - trans_it->added_cycle >= static_cast<uint64_t>(latency_)) {
             if (trans_it->is_write) {
-                write_callback_(trans_it->addr);
+                write_callback_(trans_it->addr, module_index);
             } else {
-                read_callback_(trans_it->addr);
+                read_callback_(trans_it->addr, module_index);
             }
             trans_it = infinite_buffer_q_.erase(trans_it++);
         }
